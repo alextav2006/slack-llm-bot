@@ -99,3 +99,9 @@ This project implements an AI-powered Slack bot using **n8n** that interprets na
 
 ## License
 This project is released under the MIT License.
+
+<img width="1882" height="930" alt="image" src="https://github.com/user-attachments/assets/251de949-8beb-425b-999b-100a3027ac67" />
+
+<img width="1881" height="933" alt="image" src="https://github.com/user-attachments/assets/54d701ed-0d0c-423e-ae42-b74cb3691150" />
+
+<img width="1879" height="935" alt="image" src="https://github.com/user-attachments/assets/222a3b7a-ae0d-4fd2-b638-7b20516c1741" />
