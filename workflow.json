@@ -1,0 +1,268 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -920,
+        640
+      ],
+      "id": "0080a9d0-f242-47f9-aa39-c397469c64c8",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "brPqeCbepBR4tZyc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "trigger": [
+          "app_mention"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        416
+      ],
+      "id": "71395b92-ec14-4dcb-9be1-ff0c15b94211",
+      "name": "Slack Trigger",
+      "webhookId": "5ccc0489-5819-4fdb-bbe9-919fd96312c3",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "text": "={{ $json[\"resposta\"] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        320
+      ],
+      "id": "57e492b3-d333-45a6-b6af-d9a0fda27324",
+      "name": "Send a message",
+      "webhookId": "cd0bdae1-8197-473a-9370-260b5d640cab",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json[\"text\"] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You must interpret the received message and return only JSON, never any text outside of the JSON.\n\nIf it is an appointment:\n\n{\n  \"resposta\": \"Fluent, prompted-language text confirming the appointment.\",\n  \"acao\": \"compromisso\",\n  \"titulo\": \"Appointment title\",\n  \"data\": \"YYYY-MM-DD\",\n  \"hora\": \"HH:MM\",\n  \"timezone\": \"Valid IANA identifier (e.g., 'Europe/Lisbon', 'Africa/Luanda', 'America/Sao_Paulo')\",\n  \"offset\": \"±HH:MM (valid ISO offset, e.g., '+01:00', '-03:00')\"\n}\n\n\nIf it is not an appointment:\n\n{\n  \"resposta\": \"Fluent, prompted-language text for the user.\",\n  \"acao\": \"nenhum\"\n}\n\n\n⚠️ Important:\n\nThe reference date is the server’s current date: \"{{ $now.format('yyyy-MM-dd') }}\".\n\nThe reference timezone is the server’s timezone (ISO 8601): \"{{ $now.toISO() }}\".\n\nThe timezone key must always be a valid IANA identifier.\n\nThe offset key must always be the correct ISO offset corresponding to the timezone.\n\nIf the user specifies a location (e.g., “Portugal time”, “Angola time”), return the correct timezone and the correct offset.\n\nIf the user does not specify a location, assume the server’s timezone: \"{{ $now.setZone().zoneName }}\" and its corresponding offset."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -992,
+        416
+      ],
+      "id": "27592ee7-3eda-474f-9404-27a57aef28ff",
+      "name": "LLM chain response"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = $json[\"text\"];\nconst parsed = JSON.parse(raw);\nreturn parsed;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        416
+      ],
+      "id": "d36ef998-79d9-4801-a358-8ca747a6c4b8",
+      "name": "Text-to-Json"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1fdd912-7676-4036-8cd5-e9a82143e550",
+              "leftValue": "={{ $json[\"acao\"] }}",
+              "rightValue": "compromisso",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -416,
+        512
+      ],
+      "id": "e7a12c8d-405f-4ef0-a8cf-0e247c7130b0",
+      "name": "If action is an appointment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"summary\": \"{{ $json[\"titulo\"] }}\",\n  \"start\": {\n    \"dateTime\": \"{{ $json[\"data\"] + 'T' + $json[\"hora\"] + ':00'}}\",\n    \"timeZone\": \"{{ $json[\"timezone\"] }}\"\n  },\n  \"end\": {\n    \"dateTime\": \"{{ $json[\"data\"] + 'T' + (parseInt($json[\"hora\"].split(':')[0]) + 1).toString().padStart(2,'0') + ':' + $json[\"hora\"].split(':')[1] + ':00'}}\",\n    \"timeZone\": \"{{ $json[\"timezone\"] }}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -192,
+        512
+      ],
+      "id": "e04d6df3-cd14-48a8-9dd6-26603c41ac00",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "LMDo2I4GtIFcghpp",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM chain response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "LLM chain response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "LLM chain response": {
+      "main": [
+        [
+          {
+            "node": "Text-to-Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-to-Json": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If action is an appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If action is an appointment": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f1e9928cc7f1654d4e28dc186d406407c4076acd9d8c749a8f1d486c5013eca9"
+  }
+}
