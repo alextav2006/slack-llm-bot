@@ -14,7 +14,7 @@
       "typeVersion": 1.2,
       "position": [
         -920,
-        640
+        832
       ],
       "id": "0080a9d0-f242-47f9-aa39-c397469c64c8",
       "name": "OpenAI Chat Model",
@@ -42,7 +42,7 @@
       "typeVersion": 1,
       "position": [
         -1216,
-        416
+        608
       ],
       "id": "71395b92-ec14-4dcb-9be1-ff0c15b94211",
       "name": "Slack Trigger",
@@ -56,56 +56,6 @@
     },
     {
       "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "C09CN6MJML2",
-          "mode": "list",
-          "cachedResultName": "novo-canal"
-        },
-        "text": "={{ $json[\"resposta\"] }}",
-        "otherOptions": {}
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
-      "position": [
-        -416,
-        320
-      ],
-      "id": "57e492b3-d333-45a6-b6af-d9a0fda27324",
-      "name": "Send a message",
-      "webhookId": "cd0bdae1-8197-473a-9370-260b5d640cab",
-      "credentials": {
-        "slackApi": {
-          "id": "EuVT5nGxsxT2okY7",
-          "name": "Slack account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json[\"text\"] }}",
-        "messages": {
-          "messageValues": [
-            {
-              "message": "=You must interpret the received message and return only JSON, never any text outside of the JSON.\n\nIf it is an appointment:\n\n{\n  \"resposta\": \"Fluent, prompted-language text confirming the appointment.\",\n  \"acao\": \"compromisso\",\n  \"titulo\": \"Appointment title\",\n  \"data\": \"YYYY-MM-DD\",\n  \"hora\": \"HH:MM\",\n  \"timezone\": \"Valid IANA identifier (e.g., 'Europe/Lisbon', 'Africa/Luanda', 'America/Sao_Paulo')\",\n  \"offset\": \"±HH:MM (valid ISO offset, e.g., '+01:00', '-03:00')\"\n}\n\n\nIf it is not an appointment:\n\n{\n  \"resposta\": \"Fluent, prompted-language text for the user.\",\n  \"acao\": \"nenhum\"\n}\n\n\n⚠️ Important:\n\nThe reference date is the server’s current date: \"{{ $now.format('yyyy-MM-dd') }}\".\n\nThe reference timezone is the server’s timezone (ISO 8601): \"{{ $now.toISO() }}\".\n\nThe timezone key must always be a valid IANA identifier.\n\nThe offset key must always be the correct ISO offset corresponding to the timezone.\n\nIf the user specifies a location (e.g., “Portugal time”, “Angola time”), return the correct timezone and the correct offset.\n\nIf the user does not specify a location, assume the server’s timezone: \"{{ $now.setZone().zoneName }}\" and its corresponding offset."
-            }
-          ]
-        },
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.7,
-      "position": [
-        -992,
-        416
-      ],
-      "id": "27592ee7-3eda-474f-9404-27a57aef28ff",
-      "name": "LLM chain response"
-    },
-    {
-      "parameters": {
         "mode": "runOnceForEachItem",
         "jsCode": "const raw = $json[\"text\"];\nconst parsed = JSON.parse(raw);\nreturn parsed;"
       },
@@ -113,7 +63,7 @@
       "typeVersion": 2,
       "position": [
         -640,
-        416
+        608
       ],
       "id": "d36ef998-79d9-4801-a358-8ca747a6c4b8",
       "name": "Text-to-Json"
@@ -130,8 +80,8 @@
           "conditions": [
             {
               "id": "a1fdd912-7676-4036-8cd5-e9a82143e550",
-              "leftValue": "={{ $json[\"acao\"] }}",
-              "rightValue": "compromisso",
+              "leftValue": "={{ $json[\"action\"] }}",
+              "rightValue": "compromisse",
               "operator": {
                 "type": "string",
                 "operation": "equals",
@@ -147,10 +97,38 @@
       "typeVersion": 2.2,
       "position": [
         -416,
-        512
+        608
       ],
       "id": "e7a12c8d-405f-4ef0-a8cf-0e247c7130b0",
       "name": "If action is an appointment"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "text": "=Google Calendar Link: {{ $('Scheduling...').item.json[\"htmlLink\"] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        416
+      ],
+      "id": "1e934289-3f46-46ce-8dec-4c982042a2b6",
+      "name": "Sending the schedule link",
+      "webhookId": "bc0920f0-4faa-46bb-b091-440a9630cb90",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
     },
     {
       "parameters": {
@@ -169,21 +147,195 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"summary\": \"{{ $json[\"titulo\"] }}\",\n  \"start\": {\n    \"dateTime\": \"{{ $json[\"data\"] + 'T' + $json[\"hora\"] + ':00'}}\",\n    \"timeZone\": \"{{ $json[\"timezone\"] }}\"\n  },\n  \"end\": {\n    \"dateTime\": \"{{ $json[\"data\"] + 'T' + (parseInt($json[\"hora\"].split(':')[0]) + 1).toString().padStart(2,'0') + ':' + $json[\"hora\"].split(':')[1] + ':00'}}\",\n    \"timeZone\": \"{{ $json[\"timezone\"] }}\"\n  }\n}\n",
+        "jsonBody": "={\n  \"summary\": \"{{ $('Text-to-Json').item.json['title'] }}\",\n  \"start\": {\n    \"dateTime\": \"{{ $('Text-to-Json').item.json['start_date'] }}T{{ $('Text-to-Json').item.json['start_hour'] }}:00\",\n    \"timeZone\": \"{{ $('Text-to-Json').item.json['timezone'] }}\"\n  },\n  \"end\": {\n    \"dateTime\": \"{{ $('Text-to-Json').item.json['end_date'] }}T{{ $('Text-to-Json').item.json['end_hour'] }}:00\",\n    \"timeZone\": \"{{ $('Text-to-Json').item.json['timezone'] }}\"\n  }\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -192,
-        512
+        256,
+        416
       ],
       "id": "e04d6df3-cd14-48a8-9dd6-26603c41ac00",
-      "name": "HTTP Request",
+      "name": "Scheduling...",
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "LMDo2I4GtIFcghpp",
           "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "alextav2006@gmail.com",
+          "mode": "list",
+          "cachedResultName": "alextav2006@gmail.com"
+        },
+        "timeMin": "={{ $json['start_date'] }}T{{ $json['start_hour'] }}:00",
+        "timeMax": "={{ $json['end_date'] }}T{{ $json['end_hour'] }}:00",
+        "options": {
+          "timezone": {
+            "__rl": true,
+            "value": "={{ $json[\"timezone\"] }}",
+            "mode": "id"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        512
+      ],
+      "id": "69295a1c-ebdf-4b27-8fa7-e9d721b3f049",
+      "name": "Locating time interval",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "LMDo2I4GtIFcghpp",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "325fae84-e45b-4128-93be-a44fe04e9bee",
+              "leftValue": "={{ $json[\"available\"] }}",
+              "rightValue": "={{ $json['start_date'] }}T{{ $json['start_hour'] }}:00",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        512
+      ],
+      "id": "da3d47a3-0cf7-48ef-b587-5cc2fc473820",
+      "name": "Checking availability"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "text": "={{ $('Text-to-Json').item.json['answer'] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        416
+      ],
+      "id": "57e492b3-d333-45a6-b6af-d9a0fda27324",
+      "name": "Confirming to the user the schedule",
+      "webhookId": "cd0bdae1-8197-473a-9370-260b5d640cab",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "text": "={{ $('Text-to-Json').item.json['busy_answer'] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        608
+      ],
+      "id": "b72689eb-590a-4388-b662-a513341d744c",
+      "name": "Telling user that date its not available",
+      "webhookId": "cd0bdae1-8197-473a-9370-260b5d640cab",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json[\"text\"] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Always return JSON only.\n\nIf it is an appointment:\n{\n  \"answer\": \"...\",\n  \"busy_answer\": \"You may answer the user fluently in his language, that the time interval selected is busy and he should pick another one.\",\n  \"action\": \"compromisse\",\n  \"title\": \"...\",\n  \"start_date\": \"YYYY-MM-DD\",\n  \"start_hour\": \"HH:MM\",\n  \"end_date\": \"YYYY-MM-DD\",\n  \"end_hour\": \"HH:MM\",\n  \"timezone\": \"Valid IANA identifier\",\n  \"offset\": \"±HH:MM\"\n}\n\nIf not an appointment:\n{\n  \"answer\": \"...\",\n  \"action\": \"none\"\n}\n\nRules:\n- Reference date/hour = server current ({{ $now.format('yyyy-MM-dd HH:mm') }}, {{ $now.setZone().zoneName }}).\n- No past start_date/start_hour allowed. If forced → action=\"none\".\n- If start < reference but not forced → increment start_date +1.\n- If end_hour < start_hour → increment end_date +1.\n- If no time specified → use reference date/hour as start.\n- Always output valid IANA timezone + correct offset.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -992,
+        608
+      ],
+      "id": "27592ee7-3eda-474f-9404-27a57aef28ff",
+      "name": "Processing the message"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "novo-canal"
+        },
+        "text": "={{$('Text-to-Json').item.json['answer']}}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        704
+      ],
+      "id": "309826a3-ea32-458f-98cb-7ba3d2c82e09",
+      "name": "Send a message",
+      "webhookId": "a5c669e6-b577-46d9-ab36-1af1400265b3",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
         }
       }
     }
@@ -193,7 +345,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "LLM chain response",
+            "node": "Processing the message",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -204,23 +356,7 @@
       "main": [
         [
           {
-            "node": "LLM chain response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a message": {
-      "main": [
-        []
-      ]
-    },
-    "LLM chain response": {
-      "main": [
-        [
-          {
-            "node": "Text-to-Json",
+            "node": "Processing the message",
             "type": "main",
             "index": 0
           }
@@ -230,11 +366,6 @@
     "Text-to-Json": {
       "main": [
         [
-          {
-            "node": "Send a message",
-            "type": "main",
-            "index": 0
-          },
           {
             "node": "If action is an appointment",
             "type": "main",
@@ -247,16 +378,80 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Locating time interval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "Scheduling...": {
       "main": [
-        []
+        [
+          {
+            "node": "Confirming to the user the schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Locating time interval": {
+      "main": [
+        [
+          {
+            "node": "Checking availability",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checking availability": {
+      "main": [
+        [
+          {
+            "node": "Scheduling...",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telling user that date its not available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirming to the user the schedule": {
+      "main": [
+        [
+          {
+            "node": "Sending the schedule link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processing the message": {
+      "main": [
+        [
+          {
+            "node": "Text-to-Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
