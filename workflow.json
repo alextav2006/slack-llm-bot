@@ -14,7 +14,7 @@
       "typeVersion": 1.2,
       "position": [
         -920,
-        832
+        928
       ],
       "id": "0080a9d0-f242-47f9-aa39-c397469c64c8",
       "name": "OpenAI Chat Model",
@@ -34,7 +34,7 @@
           "__rl": true,
           "value": "C09CN6MJML2",
           "mode": "list",
-          "cachedResultName": "novo-canal"
+          "cachedResultName": "marcar-reuniões"
         },
         "options": {}
       },
@@ -42,7 +42,7 @@
       "typeVersion": 1,
       "position": [
         -1216,
-        608
+        704
       ],
       "id": "71395b92-ec14-4dcb-9be1-ff0c15b94211",
       "name": "Slack Trigger",
@@ -57,16 +57,17 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const raw = $json[\"text\"];\nconst parsed = JSON.parse(raw);\nreturn parsed;"
+        "jsCode": "const raw = $json[\"text\"];\nconst parsed = JSON.parse(raw);\nreturn parsed;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -640,
-        608
+        704
       ],
       "id": "d36ef998-79d9-4801-a358-8ca747a6c4b8",
-      "name": "Text-to-Json"
+      "name": "Text-to-Json",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -101,34 +102,6 @@
       ],
       "id": "e7a12c8d-405f-4ef0-a8cf-0e247c7130b0",
       "name": "If action is an appointment"
-    },
-    {
-      "parameters": {
-        "select": "channel",
-        "channelId": {
-          "__rl": true,
-          "value": "C09CN6MJML2",
-          "mode": "list",
-          "cachedResultName": "novo-canal"
-        },
-        "text": "=Google Calendar Link: {{ $('Scheduling...').item.json[\"htmlLink\"] }}",
-        "otherOptions": {}
-      },
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 2.3,
-      "position": [
-        704,
-        416
-      ],
-      "id": "1e934289-3f46-46ce-8dec-4c982042a2b6",
-      "name": "Sending the schedule link",
-      "webhookId": "bc0920f0-4faa-46bb-b091-440a9630cb90",
-      "credentials": {
-        "slackApi": {
-          "id": "EuVT5nGxsxT2okY7",
-          "name": "Slack account"
-        }
-      }
     },
     {
       "parameters": {
@@ -240,9 +213,9 @@
           "__rl": true,
           "value": "C09CN6MJML2",
           "mode": "list",
-          "cachedResultName": "novo-canal"
+          "cachedResultName": "marcar-reuniões"
         },
-        "text": "={{ $('Text-to-Json').item.json['answer'] }}",
+        "text": "={{ $('Text-to-Json').item.json['answer'] }}\nGoogle Calendar Link: {{ $('Scheduling...').item.json[\"htmlLink\"] }}",
         "otherOptions": {}
       },
       "type": "n8n-nodes-base.slack",
@@ -268,7 +241,7 @@
           "__rl": true,
           "value": "C09CN6MJML2",
           "mode": "list",
-          "cachedResultName": "novo-canal"
+          "cachedResultName": "marcar-reuniões"
         },
         "text": "={{ $('Text-to-Json').item.json['busy_answer'] }}",
         "otherOptions": {}
@@ -306,7 +279,7 @@
       "typeVersion": 1.7,
       "position": [
         -992,
-        608
+        704
       ],
       "id": "27592ee7-3eda-474f-9404-27a57aef28ff",
       "name": "Processing the message"
@@ -318,7 +291,7 @@
           "__rl": true,
           "value": "C09CN6MJML2",
           "mode": "list",
-          "cachedResultName": "novo-canal"
+          "cachedResultName": "marcar-reuniões"
         },
         "text": "={{$('Text-to-Json').item.json['answer']}}",
         "otherOptions": {}
@@ -330,7 +303,63 @@
         704
       ],
       "id": "309826a3-ea32-458f-98cb-7ba3d2c82e09",
-      "name": "Send a message",
+      "name": "Answer to message",
+      "webhookId": "a5c669e6-b577-46d9-ab36-1af1400265b3",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CN6MJML2",
+          "mode": "list",
+          "cachedResultName": "marcar-reuniões"
+        },
+        "text": "Internal error. Contact your administrator ASAP!",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        896
+      ],
+      "id": "30065c77-9da0-4d65-b443-55cca04f2877",
+      "name": "Telling user that an error happened",
+      "webhookId": "a5c669e6-b577-46d9-ab36-1af1400265b3",
+      "credentials": {
+        "slackApi": {
+          "id": "EuVT5nGxsxT2okY7",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09CJ0EU80K",
+          "mode": "list",
+          "cachedResultName": "admin-error-handling"
+        },
+        "text": "=ERROR <output>: \n\n{{$json['text']}}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        896
+      ],
+      "id": "d5c9791f-ae2b-4057-8d1a-e1860e79f3d9",
+      "name": "Admin; Error output text",
       "webhookId": "a5c669e6-b577-46d9-ab36-1af1400265b3",
       "credentials": {
         "slackApi": {
@@ -371,6 +400,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Telling user that an error happened",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -385,7 +421,7 @@
         ],
         [
           {
-            "node": "Send a message",
+            "node": "Answer to message",
             "type": "main",
             "index": 0
           }
@@ -434,13 +470,7 @@
     },
     "Confirming to the user the schedule": {
       "main": [
-        [
-          {
-            "node": "Sending the schedule link",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Processing the message": {
@@ -448,6 +478,17 @@
         [
           {
             "node": "Text-to-Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telling user that an error happened": {
+      "main": [
+        [
+          {
+            "node": "Admin; Error output text",
             "type": "main",
             "index": 0
           }
