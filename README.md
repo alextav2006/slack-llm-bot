@@ -90,10 +90,10 @@ This project implements an AI-powered Slack bot using **n8n** that interprets na
 ## Example  
 
 ### Input (Slack message)  
-`@Bot Marcar reunião amanhã às 3h da manhã`  
+`@Bot Schedule an appointment for 3 am.`  
 
 ### Output  
-- Slack reply: *"A reunião foi marcada para as 3 da manhã do dia seguinte, uma vez que o horário solicitado está no passado."*  
+- Slack reply: *"The appointment was scheduled for the next day at 3:00 AM, since the originally requested time was already in the past."*  
 - Slack follow-up: `Google Calendar Link: <event-link>`  
 - Event created in Google Calendar with correct timezone.  
 
@@ -112,5 +112,3 @@ This project implements an AI-powered Slack bot using **n8n** that interprets na
 This project is released under the MIT License.  
 
 <img width="1920" height="891" alt="image" src="https://github.com/user-attachments/assets/ca9ea0ba-7965-4030-aa7b-9f888ab7904f" />
-![Workflow Screenshot](https://github.com/user-attachments/assets/54d701ed-0d0c-423e-ae42-b74cb3691150)  
-![Workflow Screenshot](https://github.com/user-attachments/assets/222a3b7a-ae0d-4fd2-b638-7b20516c1741)  
