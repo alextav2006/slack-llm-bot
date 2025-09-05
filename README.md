@@ -1,4 +1,4 @@
-# AI-Powered Slack Bot with Google Calendar Integration  
+# AI-Powered Slack Bot with Google Calendar/Gmail Integration  
 
 ## Overview  
 This project implements an AI-powered Slack bot using **n8n** that interprets natural language messages, extracts appointments, checks availability, and automatically schedules them in **Google Calendar**. The workflow is designed to handle **time zones**, **busy slots**, and **invalid past dates**, ensuring reliable scheduling for international teams.  
